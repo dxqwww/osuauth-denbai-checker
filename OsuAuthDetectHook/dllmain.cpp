@@ -1,4 +1,6 @@
-﻿#include "pch.h"
+﻿#include <windows.h>
+#include <TlHelp32.h>
+#include <iostream>
 
 #pragma region THE ORAL CIGNATURES
 
