@@ -88,6 +88,7 @@ void OnAuthDetect()
 DWORD __stdcall MainThread(LPVOID param)
 {
     AllocConsole();
+    SetConsoleTitleA("Denbai Detector");
 
     FILE* fDummy;
     freopen_s(&fDummy, "CONOUT$", "w", stdout);
@@ -97,7 +98,7 @@ DWORD __stdcall MainThread(LPVOID param)
     char* hookAddress = ScanSignature(const_cast<char*>("\x8B\x45\xE8\x89\x45\xC0\xC7\x45\xFC\xFF\xFF\xFF\xFF\x8D\x4D\xC4\xE8\xBB\x06\x5A\x00\x8B\x45\xC0\x8B\x4D\xF4\x64\x89\x0D\x00\x00\x00\x00\x8B\xE5\x5D\xC3"), const_cast<char*>("xxxxxxxxx????xxxx????xxxxxxxxx????xxxx"), (char*)osuAuthModule.modBaseAddr, osuAuthModule.modBaseSize);
 
     Hook((void*)(hookAddress + 0x25), OnAuthDetect);
-    
+
     return NULL;
 }
 
