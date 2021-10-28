@@ -1,4 +1,5 @@
 # osuauth-denbai-checker
+DLL That detects osu! anticheat flags
 
-Программа для бана хохлов в осу    
-Пеппи, забань [денбая](https://osu.ppy.sh/users/9521077)
+### [!] This program does not disabling flags, just logging when they come
+![image](https://user-images.githubusercontent.com/45855057/139313827-e71a20f5-a7cd-4aa4-ba4b-c3db0377d26a.png)
