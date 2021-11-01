@@ -1,34 +1,20 @@
 ﻿#include <windows.h>
 #include <TlHelp32.h>
+#include <Psapi.h>
 #include <iostream>
 
 #pragma region THE ORAL CIGNATURES
 
-MODULEENTRY32 GetOsuAuthModule()
+MODULEINFO GetOsuAuthModule()
 {
-    MODULEENTRY32 modEntry = { 0 };
-    HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, GetCurrentProcessId());
+    MODULEINFO modInfo{ nullptr };
+    HMODULE hModule = GetModuleHandleA("osu!auth.dll");
 
-    if (hSnap != INVALID_HANDLE_VALUE)
-    {
-        MODULEENTRY32 modEntry;
-        modEntry.dwSize = sizeof(modEntry);
-        if (Module32First(hSnap, &modEntry))
-        {
-            do
-            {
-                if (!_wcsicmp(modEntry.szModule, L"osu!auth.dll"))
-                {
-                    CloseHandle(hSnap);
+    if (hModule == 0)
+        return modInfo;
 
-                    return modEntry;
-                }
-            } while (Module32Next(hSnap, &modEntry));
-        }
-    }
-
-    CloseHandle(hSnap);
-    return modEntry;
+    GetModuleInformation(GetCurrentProcess(), hModule, &modInfo, sizeof(MODULEINFO));
+    return modInfo;
 }
 
 char* ScanSignature(char* pattern, char* mask, char* begin, unsigned int size)
@@ -85,27 +71,30 @@ void OnAuthDetect()
     std::cout << "Your account has been flagged :)" << std::endl;
 }
 
-DWORD __stdcall MainThread(LPVOID param)
+DWORD WINAPI MainThread(LPVOID param)
 {
     AllocConsole();
-    SetConsoleTitleA("Denbai Detector");
+    SetConsoleTitleA("osu!auth account flag checker");
 
     FILE* fDummy;
     freopen_s(&fDummy, "CONOUT$", "w", stdout);
 
-    MODULEENTRY32 osuAuthModule = GetOsuAuthModule();
+    MODULEINFO osuAuthModule = GetOsuAuthModule();
 
-    char* hookAddress = ScanSignature(const_cast<char*>("\x8B\x45\xE8\x89\x45\xC0\xC7\x45\xFC\xFF\xFF\xFF\xFF\x8D\x4D\xC4\xE8\xBB\x06\x5A\x00\x8B\x45\xC0\x8B\x4D\xF4\x64\x89\x0D\x00\x00\x00\x00\x8B\xE5\x5D\xC3"), const_cast<char*>("xxxxxxxxx????xxxx????xxxxxxxxx????xxxx"), (char*)osuAuthModule.modBaseAddr, osuAuthModule.modBaseSize);
+    char* hookAddress = ScanSignature(const_cast<char*>("\x8B\x45\xE8\x89\x45\xC0\xC7\x45\xFC\xFF\xFF\xFF\xFF\x8D\x4D\xC4\xE8\xBB\x06\x5A\x00\x8B\x45\xC0\x8B\x4D\xF4\x64\x89\x0D\x00\x00\x00\x00\x8B\xE5\x5D\xC3"), const_cast<char*>("xxxxxxxxx????xxxx????xxxxxxxxx????xxxx"), (char*)osuAuthModule.lpBaseOfDll, osuAuthModule.SizeOfImage);
 
     Hook((void*)(hookAddress + 0x25), OnAuthDetect);
 
     return NULL;
 }
 
-BOOL __stdcall DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 {
     if (dwReason == DLL_PROCESS_ATTACH)
+    {
+        DisableThreadLibraryCalls(hModule);
         CreateThread(NULL, NULL, MainThread, hModule, NULL, NULL);
+    }
 
     return TRUE;
 }
