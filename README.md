@@ -1,3 +1,5 @@
+# !OUTDATED!
+
 # osuauth-denbai-checker
 DLL That detects osu! anticheat flags
 
